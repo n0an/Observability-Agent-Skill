@@ -1,0 +1,5 @@
+{
+  "name": "observability",
+  "version": "1.0.0",
+  "description": "Reviews and writes Swift observability code: unified logging (Logger/OSLog), signposts, MetricKit metrics and diagnostics, crash reporting, symbolication, and production telemetry pipelines"
+}

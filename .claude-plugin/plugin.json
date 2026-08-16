@@ -1,0 +1,8 @@
+{
+  "name": "observability",
+  "description": "Reviews and writes Swift observability code: unified logging (Logger/OSLog), signposts, MetricKit metrics and diagnostics, crash reporting, symbolication, and production telemetry pipelines",
+  "version": "1.0.0",
+  "author": "Anton Novoselov",
+  "license": "MIT",
+  "repository": "https://github.com/n0an/Observability-Agent-Skill"
+}
