@@ -3,6 +3,7 @@
 <p align="center">
     <img src="https://img.shields.io/badge/iOS-14+-2980b9.svg" alt="iOS 14+" />
     <img src="https://img.shields.io/badge/swift-5.9+-F05138.svg" alt="Swift 5.9+" />
+    <img src="https://img.shields.io/badge/WWDC-2016--2026-FF2D55.svg" alt="Covers WWDC 2016-2026" />
     <img src="https://img.shields.io/badge/license-MIT-lightgrey.svg" alt="MIT License" />
     <a href="https://agentskills.io/home">
         <img src="https://img.shields.io/badge/Agent%20Skills-Compatible-purple.svg" alt="Agent Skills Compatible" />
