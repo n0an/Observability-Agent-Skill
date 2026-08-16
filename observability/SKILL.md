@@ -40,8 +40,8 @@ Match the user's goal to the read order. Load only what you need.
 ### "My interpolated values show as <private> / I need to hide user data in logs"
 1. `references/logger-api.md` - privacy annotations, `.private(mask: .hash)`, equality tracking
 
-### "Read logs from a device / filter the noise in Console / stream logs in terminal"
-1. `references/log-cli-and-console.md` - Console.app workflow, `log stream/show/collect`, predicates
+### "Read logs from a device / filter the noise in Console / capture logs while debugging"
+1. `references/log-cli-and-console.md` - Console.app workflow, `log stream/show/collect`, predicates, scripted simulator/device capture tiers
 
 ### "Let users send me their logs / show logs inside the app"
 1. `references/oslogstore.md` - OSLogStore, scope limits, export design
@@ -220,7 +220,7 @@ End of example.
 
 - `references/fundamentals.md` - the observability model: three pillars on Apple platforms, unified logging architecture (binary store, memory vs disk), levels and persistence, who can see what in dev vs production, the signal map.
 - `references/logger-api.md` - `Logger` and legacy `os_log`: setup patterns, levels, privacy annotations and masking, formatting/alignment, lazy interpolation, wrapper and multi-destination facade design.
-- `references/log-cli-and-console.md` - Console.app workflow, `log stream/show/collect/config`, predicate syntax, logging configuration profiles, sysdiagnose.
+- `references/log-cli-and-console.md` - Console.app workflow, `log stream/show/collect/config`, predicate syntax, logging configuration profiles, sysdiagnose, scripted capture workflows for agent-assisted debugging (simulator stream-to-file, `devicectl` console launch with an env-gated print mirror, timestamped `sudo log collect` device archives).
 - `references/oslogstore.md` - reading your own logs at runtime, scope and persistence limits, building a support-log export.
 - `references/signposts.md` - `OSSignposter` intervals/events/animation intervals, signpost IDs, legacy `os_signpost`, Instruments os_signpost and Points of Interest, `xctrace`, XCTest metrics, DTrace probes for un-instrumentable processes.
 - `references/activity-tracing.md` - `os_activity` in Swift, scopes, `labelUserAction`, correlation IDs, activities vs signposts.

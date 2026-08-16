@@ -67,6 +67,89 @@ script (`scripts/tail-logs.sh` wrapping `log stream --level debug
 --predicate 'subsystem == "..."'`) - unlike Console saved searches, it is
 shareable, reviewable, and identical on every machine.
 
+## Scripted capture workflows (agent-assisted debugging)
+
+When an AI agent or a script drives the debug loop, ad-hoc streaming into a
+foreground terminal does not fit: capture has to run in a long-lived
+background session, write to files, and be summarizable afterwards. A
+three-tier setup that works well in practice - each tier a start/stop pair
+writing timestamped files under `logs/`:
+
+### Tier 1: simulator stream-to-file (fastest loop)
+
+```bash
+#!/bin/bash
+# scripts/capture-sim-logs.sh - attach to the booted simulator
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+UDID=$(xcrun simctl list devices | grep "(Booted)" \
+    | grep -oE '[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}' \
+    | head -1)
+[ -z "$UDID" ] && { echo "No booted simulator"; exit 1; }
+
+xcrun simctl spawn "$UDID" log stream --level=debug \
+    --predicate 'subsystem == "com.example.app"' \
+    2>&1 | tee "logs/sim-${TIMESTAMP}.log"
+```
+
+- Attaches to the already-booted simulator without relaunching the app.
+- Captures `Logger` output including `debug` (visible live even though it
+  never persists); does **not** capture `print`.
+- Run it in a long-lived background shell; Ctrl-C stops the stream and the
+  file survives. Analyze the newest capture
+  (`ls -t logs/sim-*.log | head -1`): grep `error|fault`, a category tag,
+  or tail it.
+
+### Tier 2: device console launch (stdout on real hardware)
+
+```bash
+xcrun devicectl device process launch --console --terminate-existing \
+    --device <device-udid> \
+    --environment-variables '{"ENABLE_PRINT_LOGS": "1"}' \
+    com.example.app 2>&1 | tee "logs/device-$(date +%Y%m%d-%H%M%S).log"
+```
+
+- `--console` streams the process's **stdout/stderr** - which is where
+  `print` goes and where unified-log messages do not appear. To see
+  structured messages in this stream, have the logging facade
+  (`logger-api.md`) additionally mirror each message to `print` **only
+  when the launch environment sets the flag** (read the `ProcessInfo`
+  environment once into a static bool). Shipping builds never set the
+  variable, so the mirror is dead code in production and the
+  no-`print`-in-committed-code rule stays intact.
+- `--terminate-existing` guarantees a clean relaunch under the console.
+- The tier for device-only bugs that need a live stream without sudo.
+
+### Tier 3: timestamped device archive (everything, including extensions)
+
+1. Before reproducing, record the window start (pad a couple of minutes
+   early) and the device UDID:
+   `date '+%Y-%m-%d %H:%M:%S' > .log-start-time`;
+   UDID from `xcrun xctrace list devices`.
+2. Reproduce the issue on the device.
+3. Collect and pre-filter:
+
+```bash
+sudo log collect --device-udid <udid> \
+    --start "$(cat .log-start-time)" --output logs/device.logarchive
+log show logs/device.logarchive \
+    --predicate 'subsystem == "com.example.app"' \
+    --info --style compact > logs/device-filtered.txt
+```
+
+- **Requires interactive sudo** - an agent should hand this command to the
+  user to run, not attempt it itself.
+- The only tier that captures **every process**, including app extensions
+  (keyboard, share, widget) that a console attach cannot reach - the tier
+  for bugs that live in an extension.
+- The `.logarchive` reopens in Console.app for interactive digging; the
+  `--style compact` text export is the greppable artifact.
+- Bounding with `--start` keeps collection time and archive size sane.
+
+Conventions that keep the loop reliable: one timestamped file per capture
+session (never overwrite), newest-file lookup for analysis, keep raw
+captures after summarizing, and check the scripts into the repo so every
+machine and agent session captures identically.
+
 ## Changing capture behavior while debugging (macOS)
 
 ```bash

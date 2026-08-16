@@ -101,5 +101,8 @@ you still decide what gets logged and the redaction policy.
 
 Same fetch, rendered in a hidden debug screen (shake gesture / build-config
 gated). Refresh on pull rather than polling; the store is not a live stream.
+Build the filter UI's facets (category chips, level picker) from the
+distinct categories and levels present in the fetched entries rather than a
+hardcoded list - it stays correct as the app's categories evolve.
 For live tailing during development, `log stream` in a terminal beats
 anything you can build in-app.
