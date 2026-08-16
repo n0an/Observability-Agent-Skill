@@ -11,6 +11,13 @@ to Support" features and in-app debug consoles.
   plus what the store retained from earlier runs under normal persistence
   rules. macOS additionally offers `OSLogStore.local()` (whole machine,
   requires admin rights) and `init(url:)` for `.logarchive` files.
+- **App extensions are separate processes**, so the main app cannot read a
+  widget/keyboard/share extension's entries, and vice versa - each process
+  sees only its own. If a support export must include extension logs,
+  either run the same exporter inside each extension (writing into a shared
+  App Group container for the app to attach), or accept the gap. At
+  development time, a device `.logarchive` (`log-cli-and-console.md`) is
+  the way to see all processes together.
 - **Persistence rules apply.** `debug` never appears; `info` almost never
   (only if a `log collect` happened to be running). A support exporter
   retrieves the `notice`/`error`/`fault` record - write your essential logs
@@ -20,6 +27,20 @@ to Support" features and in-app debug consoles.
 - **It can be slow.** Enumerating a large store takes seconds. Always fetch
   on a background task, never on the main thread, and bound the range with a
   position.
+
+## The system store vs rolling your own
+
+Do not build a parallel log database (SwiftData/SQLite/file) just to show
+or export logs - the OS already persists `Logger` messages, and
+`OSLogStore` is the read API over that store. Double-writing costs the
+lazy-interpolation performance and privacy redaction that make `Logger`
+cheap and safe. A custom store is justified only when you need something
+the system store refuses to give: a guaranteed retention window
+independent of system rotation, structured custom fields you want to
+query, or one place that aggregates logs across the app and its
+extensions (an App Group file each process appends to). If you do both,
+write through one facade (`logger-api.md`) so every message still reaches
+unified logging.
 
 ## Fetch recipe
 
