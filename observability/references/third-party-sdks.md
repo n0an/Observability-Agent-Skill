@@ -22,6 +22,12 @@ cross-platform (Android/web) parity buy an SDK. The two are complementary:
 keep MetricKit flowing even with an SDK installed - exit reasons, Apple-
 measured hangs, and disk-write diagnostics are data the SDKs do not see.
 
+A third path exists: the open-source **KSCrash** is the in-process crash
+capture engine several commercial SDKs build on. Pairing it with your own
+upload endpoint and symbolication is the DIY route when data residency or
+cost rules out vendors - and it counts as your one crash reporter under
+the rule below.
+
 ## The one crash handler rule
 
 Crash capture works by installing Mach exception handlers and signal

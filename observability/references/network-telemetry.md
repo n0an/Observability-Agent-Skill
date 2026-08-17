@@ -166,6 +166,11 @@ computed millisecond durations as above.
   metrics show whether those optimizations are actually in effect for
   real users.
 
+Lab-side counterpart: the Instruments **Network template** visualizes the
+same phases plus connection reuse and request parallelism per request with
+zero code - use it to diagnose locally and to decide which numbers deserve
+fleet-wide collection.
+
 ### Volume strategy
 
 Full metrics for every request are too bulky to attach to mass reports.

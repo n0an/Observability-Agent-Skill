@@ -213,6 +213,22 @@ Design rules:
   per hour of use, with hangs counted from 250 ms (severe from 500 ms).
   Ideal hang rate is zero; trend it per release.
 
+## SLIs and alert hygiene
+
+- Frame each key flow as a **success-rate SLI with an explicit target**
+  ("image loads succeed >= 98%", "sync completes >= 99.5%") alongside the
+  latency percentiles - availability and latency regress independently,
+  and a success-rate target is a number product and engineering can agree
+  on before the incident.
+- Dampen alerts so one noisy datapoint never pages: evaluate on the
+  median of several evaluation points, and require the condition to hold
+  through a pending window before firing (ok -> pending -> firing). Tune
+  the window to the metric's cadence - MetricKit data arrives daily,
+  request-level success rates move by the minute.
+- Enrich client-aggregated events with the dimensions incidents actually
+  split on (app version, OS version, network type, region) - an alert
+  that cannot be sliced is an alert that cannot be diagnosed.
+
 ## Experiments on performance
 
 - To prove a perf metric matters to the business, run a **slowdown
