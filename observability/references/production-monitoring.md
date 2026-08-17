@@ -73,7 +73,11 @@ Honeycomb, a self-hosted collector). Products to link: `OpenTelemetryApi`,
 Setup is three provider registrations at startup, each wrapping an OTLP
 exporter pointed at `<endpoint>/v1/metrics`, `/v1/traces`, or `/v1/logs`
 with an auth header (`OtlpConfiguration(headers:)`; Grafana Cloud uses
-`Authorization: Basic <token>`):
+`Authorization: Basic <token>`). Attach a **resource** to each provider
+(the `ResourceExtension` product's default resources auto-populate app,
+device, and OS identity) - telemetry without resource attributes arrives
+at the backend with no service name, and nothing can be filtered or
+grouped:
 
 - **Metrics**: `registerMeterProvider` with a `PeriodicMetricReader`
   (interval = your upload cadence). Instruments via
@@ -146,6 +150,10 @@ Design rules:
 
 - **Tag every point** with app version, build, OS version, device class, and
   the metric name. Version is the dimension every investigation slices by.
+- **Stamp exported points with the payload's window** (`timeStampBegin`/
+  `End`), not ingest time - a MetricKit payload describes the previous
+  day, and upload-time stamping shifts every chart by a day (more for
+  users who launch infrequently), blurring incident timing.
 - **User/device identifiers are your choice, not MetricKit's** - payloads
   are anonymous; attach your own IDs at upload time if (and only if) your
   privacy policy covers it.
