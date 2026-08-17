@@ -60,6 +60,8 @@ installer wins, chaining is best-effort, and reports get lost or doubled.
   SDK major bump.
 - **Sampling controls cost**: session/trace sampling for RUM-style SDKs is
   set at init - decide the rate deliberately, not at 1.0 by default.
+  Consumer-scale apps commonly run traces and profiles at 1% or lower;
+  crash and error capture stays at 100%.
 - **Remote kill-switch for collection**: performance/RUM collection has
   runtime and battery cost. Wire the SDK's data-collection flag to a
   remote-config value so it can be disabled in the field without a
@@ -86,6 +88,33 @@ struct CrashReporterBreadcrumbHandler: LogHandler {
 And the reverse direction: attach your correlation/flow ID
 (`activity-tracing.md`) as an SDK tag so a crash links back to the unified
 log story around it.
+
+## Assert in debug, report in production
+
+For "the user should never get here" states, a plain `assertionFailure` is
+a no-op in Release - the impossible state happens in the field and nobody
+learns about it. The production-grade version asserts loudly in DEBUG and
+reports a non-fatal in Release:
+
+```swift
+func reportedAssertionFailure(_ message: @autoclosure () -> String,
+                              file: StaticString = #fileID,
+                              line: UInt = #line) {
+    #if DEBUG
+    assertionFailure(message(), file: file, line: line)
+    #else
+    let text = message()
+    Logger.app.fault("Invariant broken: \(text, privacy: .public)")
+    SDK.captureNonFatal(title: "Invariant broken: \(text)",
+                        context: ["location": "\(file):\(line)"])
+    #endif
+}
+```
+
+Developers and CI hit the hard stop; users keep a working app while the
+dashboard collects how often "never" actually happens. Pair it with a
+`fault`-level log so the local story (OSLogStore export, sysdiagnose)
+records the same event the SDK saw.
 
 ## Evaluation checklist when asked "which SDK"
 

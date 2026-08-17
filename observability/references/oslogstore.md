@@ -42,6 +42,14 @@ extensions (an App Group file each process appends to). If you do both,
 write through one facade (`logger-api.md`) so every message still reaches
 unified logging.
 
+If you do build a file trail, three implementation rules: cap the buffer
+by **bytes**, not entry count (entries vary wildly in size, and a byte cap
+is what actually bounds disk and memory); **debounce** disk writes (a
+write per event turns the trail into an I/O tax - buffer in memory and
+flush after a few quiet seconds); and filter high-frequency events
+(per-scroll, per-frame) before recording, or they evict the history you
+kept the trail for.
+
 ## Fetch recipe
 
 ```swift
